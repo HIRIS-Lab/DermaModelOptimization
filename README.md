@@ -15,7 +15,7 @@
 
 In order to **download the submodules** in the cloning process, use the following instruction:
 ``` Bash
-git clone --recurse-submodules ...
+git clone --recurse-submodules git@github.com:HIRIS-Lab/DermaModelOptimization.git
 ```
 
 # TODO
