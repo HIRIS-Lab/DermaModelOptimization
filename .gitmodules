@@ -1,0 +1,6 @@
+[submodule "modules/AttentionMap"]
+	path = modules/AttentionMap
+	url = git@github.com:SolidusAbi/AttentionMap.git
+[submodule "modules/Sparse"]
+	path = modules/Sparse
+	url = https://github.com/SolidusAbi/Sparse.git
