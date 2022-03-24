@@ -5,8 +5,10 @@
     * Version: 1.9 or above
 2. [Torchvision](https://anaconda.org/pytorch/torchvision)
     * Version: 0.12
+3. [tensorboard](https://anaconda.org/anaconda/tensorboard)
+    * Version: 2.6
+4. [tqdm](https://anaconda.org/anaconda/tqdm)
 
-...
 
 # Modules
 * [AttentionMap](https://github.com/SolidusAbi/AttentionMap)
