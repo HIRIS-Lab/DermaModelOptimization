@@ -1,19 +1,21 @@
 from torch.utils.data import Dataset
 from PIL import Image
+import numpy as np
+import os
 
 class Derma(Dataset):
-    def __init__(self, root_dir: str, transform=None) -> None:
+    def __init__(self, root_dir: str, labels=[0, 1], transform=None) -> None:
         super(Derma, self).__init__()
         '''
             Definir tu conjunto de datos tal que X e Y estén "relacionadas"
 
             1. Buscar en el directorio y almacenar las rutas
         '''
-        
-        # self.x = ['test/0.png', 'img/1.png', 'img/2.png', 'img/3.png']
-        # self.y = [0, 1, 0, 1]
         self.x = []
         self.y = []
+        for label in np.unique(labels):
+            self.x = self.x + [os.path.join(root_dir,str(label),name) for name in os.listdir(os.path.join(root_dir,str(label)))]
+            self.y = self.y + [label]*len(os.listdir(os.path.join(root_dir,str(label))))
 
         self.transform = transform
 
