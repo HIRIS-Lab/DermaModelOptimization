@@ -1,5 +1,4 @@
 from torch.utils.data import Dataset
-from PIL import Image
 import numpy as np
 import os
 from torch import LongTensor
@@ -25,6 +24,7 @@ class Derma(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
+        from PIL import Image
         x = Image.open(self.x[idx]).convert('RGB')
         y = self.y[idx]
 
