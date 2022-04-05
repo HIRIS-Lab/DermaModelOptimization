@@ -6,7 +6,6 @@ def train(model, loader, optimizer, criterion, n_epoch, tb_writer):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device) 
 
-    n_epoch = 10
     epoch_iterator = tqdm(
         range(n_epoch),
         leave=True,
