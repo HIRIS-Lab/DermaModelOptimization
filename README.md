@@ -21,7 +21,7 @@ git clone --recurse-submodules git@github.com:HIRIS-Lab/DermaModelOptimization.g
 ```
 
 # TODO
-* [ ] Dataset definition
+* [X] Dataset definition
 * [ ] Architecture design
     * With and without attention blocks
 * [ ] InvertedResidual documentation
