@@ -1,7 +1,18 @@
 from torch.utils.data import Dataset
 import numpy as np
 import os
-from torch import LongTensor
+from torch import LongTensor, from_numpy, Generator
+
+def get_samples_weight(dataset,print_results=False):
+    from torch import from_numpy
+    y = [dataset[i][1] for i in range(len(dataset))]
+    class_sample_count = np.array([len(np.where(y == t)[0]) for t in np.unique(y)])
+    weight = 1. / class_sample_count
+    samples_weight = from_numpy(np.array([weight[t] for t in y])).flatten().double()
+    if print_results:
+        print('Samples per class: {}'.format(class_sample_count))
+        print('Weight per class: {}'.format(weight))
+    return samples_weight
 
 class Derma(Dataset):
     def __init__(self, root_dir: str, labels=[0, 1], transform=None) -> None:
@@ -32,3 +43,34 @@ class Derma(Dataset):
             x = self.transform(x)
 
         return (x, y)
+
+    def shuffle(self,manual_seed=None):
+        import random
+        if manual_seed:
+            seed = manual_seed
+        else:
+            seed = random.random()
+        random.seed(seed)
+        dummy = list(zip(self.x,self.y))
+        random.shuffle(dummy)
+        self.x, self.y = zip(*dummy)
+        return self
+
+    def split_det(self,split_ratio=0.9):
+        from torch import Tensor, split
+        split_sizes = (int(split_ratio * self.__len__()), self.__len__() - int(split_ratio * self.__len__()))
+        train_set, test_set = split(Tensor(list(zip(self.x,self.y))), split_sizes)
+        return train_set, test_set
+    
+    def split_rand(self,split_ratio=0.9,manual_seed=None):
+        import random
+        from torch.utils.data import random_split
+        from torch import split
+        if manual_seed:
+            seed = manual_seed
+        else:
+            seed = random.random()
+        generator = Generator().manual_seed(seed)
+        split_sizes = (int(split_ratio * self.__len__()), self.__len__() - int(split_ratio * self.__len__()))
+        train_set, test_set = random_split(self, split_sizes,generator=generator)
+        return train_set, test_set
