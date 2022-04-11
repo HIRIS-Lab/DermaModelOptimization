@@ -34,14 +34,15 @@ def problem_def(dataset_dir,Weighted_sampling,labels=[0,1],split_ratio=[0.8,0.1,
     # Weighted sampling
     if Weighted_sampling:
         from derma.dataset import get_samples_weight
-        sampler = get_samples_weight(train_set)
-        train_loader = DataLoader(train_set, batch_size=batch_size, num_workers=0, sampler=sampler)
-        sampler = get_samples_weight(val_set)
-        val_loader = DataLoader(val_set, batch_size=batch_size, num_workers=0, sampler=sampler)
+        train_sampler = get_samples_weight(train_set)
+        train_loader = DataLoader(train_set, batch_size=batch_size, num_workers=0, sampler=train_sampler)
+        val_sampler = get_samples_weight(val_set)
+        val_loader = DataLoader(val_set, batch_size=batch_size, num_workers=0, sampler=val_sampler)
+        test_sampler = get_samples_weight(test_set)
+        test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0, sampler=test_sampler)
     else:
         train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0)
         val_loader = DataLoader(val_set, batch_size=batch_size, num_workers=0)
-    test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0)
     return train_loader, val_loader, test_loader
 
 def train_experiment(problem_name,train_loader, val_loader,CoordAtt,inverted_residual_setting,num_classes=2,criterion=torch.nn.CrossEntropyLoss(),n_epoch=10):
@@ -63,28 +64,3 @@ def load_experiment(model,model_dir):
     else:
         model.load_state_dict(torch.load(model_dir), map_location=torch.device('cpu'))
 
-def metrics(output: torch.Tensor, target: torch.Tensor):
-    from derma.metric import Metrics
-    import pandas as pd
-    acc = Metrics.accuracy(output, target)
-    sensitivity, specificity, precission, recall = Metrics.performance(output, target)
-    var = [[sensitivity, specificity, precission, recall, acc]]
-    columns = ['Sensitivity', 'Specificity', 'Precission', 'Recall', 'Accuracy']
-    metrics = pd.DataFrame(var, columns=columns)
-    return metrics
-
-def test_experiment(model,dataloader):
-    from torch.autograd import Variable
-#    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device = 'cpu'
-    model = model.to(device) 
-    # set model to evaluation mode
-    model.eval()
-    # compute metrics over the dataset
-    for data_batch, labels_batch in dataloader:
-        # fetch the next evaluation batch
-        data_batch, labels_batch = Variable(data_batch).to(device), Variable(labels_batch).to(device)
-        # compute model output
-        output_batch = model(data_batch)
-        metrics_batch = metrics(output_batch, labels_batch)
-    return metrics_batch
