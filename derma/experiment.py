@@ -21,74 +21,70 @@ from torchvision.models import MobileNetV2
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
-def train_experiment(dataset_dir,problem_name,Weighted_sampling,CoordAtt,inverted_residual_setting,
-                    labels=[0,1],split_ratio=0.9,transform=None,batch_size=32,criterion=torch.nn.CrossEntropyLoss(),n_epoch=10):
-
+def problem_def(dataset_dir,Weighted_sampling,labels=[0,1],split_ratio=[0.8,0.1,0.1],transform=None,batch_size=32):
     if transform is None:
         transform = transforms.Compose([
             transforms.ToTensor(),
         ])
-
-    log_dir = os.path.join('log',problem_name) 
-    model_dir = os.path.join('models',problem_name+'.pt')
-
     # Derma dataset 
     dataset = Derma(dataset_dir,labels=labels,transform=transform)
-
     # Train-test splitting
     #dataset.shuffle(manual_seed=42) 
-    train_set, test_set = dataset.split_rand(split_ratio=split_ratio,manual_seed=42)
-
+    train_set, val_set, test_set = dataset.split_rand(split_ratio=split_ratio,manual_seed=42)
     # Weighted sampling
     if Weighted_sampling:
         from derma.dataset import get_samples_weight
-        samples_weight = get_samples_weight(train_set)
-        sampler = WeightedRandomSampler(samples_weight, len(samples_weight), replacement=True)
-
-        # Data loaders
+        sampler = get_samples_weight(train_set)
         train_loader = DataLoader(train_set, batch_size=batch_size, num_workers=0, sampler=sampler)
-        test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0, sampler=sampler)
+        sampler = get_samples_weight(val_set)
+        val_loader = DataLoader(val_set, batch_size=batch_size, num_workers=0, sampler=sampler)
     else:
         train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0)
-        test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0)
+        val_loader = DataLoader(val_set, batch_size=batch_size, num_workers=0)
+    test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0)
+    return train_loader, val_loader, test_loader
 
-    # ISIC2018
+def train_experiment(problem_name,train_loader, val_loader,CoordAtt,inverted_residual_setting,num_classes=2,criterion=torch.nn.CrossEntropyLoss(),n_epoch=10):
     if CoordAtt:
-        model = MobileNetV2(num_classes=len(labels), inverted_residual_setting=inverted_residual_setting, block=InvertedResidual)
+        model = MobileNetV2(num_classes=num_classes, inverted_residual_setting=inverted_residual_setting, block=InvertedResidual)
     else:
-        model = MobileNetV2(num_classes=len(labels), inverted_residual_setting=inverted_residual_setting) # standard MobileNetV2
-
+        model = MobileNetV2(num_classes=num_classes, inverted_residual_setting=inverted_residual_setting) # standard MobileNetV2
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
-    tb_writer = SummaryWriter(log_dir=log_dir)
-
+    tb_writer = SummaryWriter(log_dir=os.path.join('log',problem_name))
     train(model, train_loader, optimizer, criterion, n_epoch, tb_writer)
-
-    torch.save(model.state_dict(), model_dir)
-
-    return test_loader
-
+#    train(model, train_loader, val_loader, optimizer, criterion, n_epoch, tb_writer)
+    torch.save(model.state_dict(), os.path.join('models',problem_name+'.pt'))
 
 def load_experiment(model,model_dir):
     if torch.cuda.is_available():
-        device = torch.device("cuda")
+        device = torch.device('cuda')
         model.load_state_dict(torch.load(model_dir))
         model.to(device)
-        model.eval()
     else:
         model.load_state_dict(torch.load(model_dir), map_location=torch.device('cpu'))
-        model.eval()
 
-def test_experiment():
-    # por definir
+def metrics(output: torch.Tensor, target: torch.Tensor):
+    from derma.metric import Metrics
+    import pandas as pd
+    acc = Metrics.accuracy(output, target)
+    sensitivity, specificity, precission, recall = Metrics.performance(output, target)
+    var = [[sensitivity, specificity, precission, recall, acc]]
+    columns = ['Sensitivity', 'Specificity', 'Precission', 'Recall', 'Accuracy']
+    metrics = pd.DataFrame(var, columns=columns)
+    return metrics
 
-#from derma.utils import test
-#from torch.utils.tensorboard import SummaryWriter
-
-#test(model, test_loader, tb_writer)
-
-# POR DEFINIR
-#model.eval()
-#output = model(input)
-
-    results = ''
-    return results
+def test_experiment(model,dataloader):
+    from torch.autograd import Variable
+#    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
+    model = model.to(device) 
+    # set model to evaluation mode
+    model.eval()
+    # compute metrics over the dataset
+    for data_batch, labels_batch in dataloader:
+        # fetch the next evaluation batch
+        data_batch, labels_batch = Variable(data_batch).to(device), Variable(labels_batch).to(device)
+        # compute model output
+        output_batch = model(data_batch)
+        metrics_batch = metrics(output_batch, labels_batch)
+    return metrics_batch

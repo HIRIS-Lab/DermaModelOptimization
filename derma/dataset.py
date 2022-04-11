@@ -1,18 +1,8 @@
+from logging import warning
 from torch.utils.data import Dataset
 import numpy as np
 import os
 from torch import LongTensor, from_numpy, Generator
-
-def get_samples_weight(dataset,print_results=False):
-    from torch import from_numpy
-    y = [dataset[i][1] for i in range(len(dataset))]
-    class_sample_count = np.array([len(np.where(y == t)[0]) for t in np.unique(y)])
-    weight = 1. / class_sample_count
-    samples_weight = from_numpy(np.array([weight[t] for t in y])).flatten().double()
-    if print_results:
-        print('Samples per class: {}'.format(class_sample_count))
-        print('Weight per class: {}'.format(weight))
-    return samples_weight
 
 class Derma(Dataset):
     def __init__(self, root_dir: str, labels=[0, 1], transform=None) -> None:
@@ -38,11 +28,12 @@ class Derma(Dataset):
         from PIL import Image
         x = Image.open(self.x[idx]).convert('RGB')
         y = self.y[idx]
-
         if self.transform:
             x = self.transform(x)
-
         return (x, y)
+
+    def get_labels(self):
+        return self.y
 
     def shuffle(self,manual_seed=None):
         import random
@@ -58,19 +49,54 @@ class Derma(Dataset):
 
     def split_det(self,split_ratio=0.9):
         from torch import Tensor, split
-        split_sizes = (int(split_ratio * self.__len__()), self.__len__() - int(split_ratio * self.__len__()))
-        train_set, test_set = split(Tensor(list(zip(self.x,self.y))), split_sizes)
-        return train_set, test_set
+        train_size = int(split_ratio[0]*self.__len__())
+        val_size = int(split_ratio[1]*self.__len__())
+        test_size = self.__len__() - train_size - val_size
+        train_set, val_set, test_set = split(Tensor(list(zip(self.x,self.y))), (train_size,val_size,test_size))
+        return train_set, val_set, test_set
     
-    def split_rand(self,split_ratio=0.9,manual_seed=None):
+    def split_rand(self,split_ratio=[0.8, 0.1, 0.1],manual_seed=None):
         import random
         from torch.utils.data import random_split
-        from torch import split
+        if sum(split_ratio) != 1:
+            warning('sum(split_ratio) !=  1')
         if manual_seed:
             seed = manual_seed
         else:
             seed = random.random()
         generator = Generator().manual_seed(seed)
-        split_sizes = (int(split_ratio * self.__len__()), self.__len__() - int(split_ratio * self.__len__()))
-        train_set, test_set = random_split(self, split_sizes,generator=generator)
-        return train_set, test_set
+        train_size = int(split_ratio[0]*self.__len__())
+        val_size = int(split_ratio[1]*self.__len__())
+        test_size = self.__len__() - train_size - val_size
+        train_set, val_set, test_set = random_split(self,(train_size,val_size,test_size),generator=generator)
+        return train_set, val_set, test_set
+    
+    def split_labels(self,split_ratio=[0.8, 0.1, 0.1],manual_seed=None):
+        import random
+        from torch.utils.data import random_split
+        if sum(split_ratio) != 1:
+            warning('sum(split_ratio) !=  1')
+        if manual_seed:
+            seed = manual_seed
+        else:
+            seed = random.random()
+        generator = Generator().manual_seed(seed)
+        train_size = int(split_ratio[0]*self.__len__())
+        val_size = int(split_ratio[1]*self.__len__())
+        test_size = self.__len__() - train_size - val_size
+        y_test, y_val, y_test = random_split(self.y,(train_size,val_size,test_size),generator=generator)
+        return y_test, y_val, y_test
+
+def get_samples_weight(dataset,y=None,print_results=False):
+    from torch import from_numpy
+    from torch.utils.data import WeightedRandomSampler
+    if y is None:
+        y = [dataset[i][1] for i in range(len(dataset))]
+    class_sample_count = np.array([len(np.where(y == t)[0]) for t in np.unique(y)])
+    weight = 1. / class_sample_count
+    samples_weight = from_numpy(np.array([weight[t] for t in y])).flatten().double()
+    if print_results:
+        print('Samples per class: {}'.format(class_sample_count))
+        print('Weight per class: {}'.format(weight))
+    sampler = WeightedRandomSampler(samples_weight, len(samples_weight), replacement=True)
+    return sampler, samples_weight
