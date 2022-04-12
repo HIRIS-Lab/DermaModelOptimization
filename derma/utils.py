@@ -3,8 +3,7 @@ from tqdm import tqdm
 import numpy as np
 from .metric import Metrics
 
-
-def train(model, loader, optimizer, criterion, n_epoch, tb_writer) -> float:
+def train(model, loader, optimizer, criterion, n_epoch, tb_writer, reconstruction=False) -> float:
     '''
     Train the model
 
@@ -23,6 +22,7 @@ def train(model, loader, optimizer, criterion, n_epoch, tb_writer) -> float:
         criterion: loss function
         n_epoch: number of epochs to train
         tb_writer: tensorboard writer
+        reconstruction: Indicate it is a reconstruction problem.
     '''
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
@@ -51,14 +51,14 @@ def train(model, loader, optimizer, criterion, n_epoch, tb_writer) -> float:
                 optimizer.zero_grad()
 
                 inputs = inputs.to(device)
-                targets = targets.to(device)
+                targets = targets.to(device) if not reconstruction else inputs
 
                 with torch.set_grad_enabled(p == 'train'):
                     outputs = model(inputs)
                     loss = criterion(outputs, targets)
     
                     epoch_loss_sum += loss.item()
-                    epoch_acc_sum += Metrics.accuracy(outputs, targets)
+                    epoch_acc_sum += Metrics.accuracy(outputs, targets) if not reconstruction else 0
 
                     if p == 'train':
                         loss.backward()
@@ -73,7 +73,8 @@ def train(model, loader, optimizer, criterion, n_epoch, tb_writer) -> float:
             epoch_loss = epoch_loss_sum/(idx+1)
             epoch_acc = epoch_acc_sum/(idx+1)
             tb_writer.add_scalar('{}/loss'.format(p), epoch_loss, epoch)
-            tb_writer.add_scalar('{}/accuracy'.format(p), epoch_acc, epoch)
+            if not reconstruction:
+                tb_writer.add_scalar('{}/accuracy'.format(p), epoch_acc, epoch)
 
             if (p == 'eval') and (epoch_loss < best_loss):
                 best_loss = epoch_loss
