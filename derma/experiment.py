@@ -13,7 +13,7 @@ if sparse_dir not in sys.path:
 
 from derma.dataset import Derma
 from derma.architecture import InvertedResidual
-from derma.utils import train
+from derma.utils import train, train_val
 
 import torch
 from torch.utils.data import WeightedRandomSampler, DataLoader
@@ -52,9 +52,9 @@ def train_experiment(problem_name,train_loader, val_loader,CoordAtt,inverted_res
         model = MobileNetV2(num_classes=num_classes, inverted_residual_setting=inverted_residual_setting) # standard MobileNetV2
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
     tb_writer = SummaryWriter(log_dir=os.path.join('log',problem_name))
-    train(model, train_loader, optimizer, criterion, n_epoch, tb_writer)
-#    train(model, train_loader, val_loader, optimizer, criterion, n_epoch, tb_writer)
-    torch.save(model.state_dict(), os.path.join('models',problem_name+'.pt'))
+    model_dir = os.path.join('models',problem_name+'.pt')
+    train_val(model,train_loader,val_loader,optimizer,criterion,tb_writer,n_epoch,model_dir=model_dir)
+    torch.save(model.state_dict(),model_dir)
 
 def load_experiment(model,model_dir):
     if torch.cuda.is_available():
@@ -64,3 +64,28 @@ def load_experiment(model,model_dir):
     else:
         model.load_state_dict(torch.load(model_dir), map_location=torch.device('cpu'))
 
+def metrics(output: torch.Tensor, target: torch.Tensor,weights=None):
+    from derma.metric import Metrics
+    import pandas as pd
+    acc = Metrics.accuracy(output, target)
+    sensitivity, specificity, precission, recall = Metrics.performance(output,target,weights=weights)
+    var = [[sensitivity, specificity, precission, recall, acc]]
+    columns = ['Sensitivity', 'Specificity', 'Precission', 'Recall', 'Accuracy']
+    metrics = pd.DataFrame(var, columns=columns)
+    return metrics
+
+def test_experiment(model,dataloader,weights=None):
+    from torch.autograd import Variable
+#    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
+    model = model.to(device) 
+    # set model to evaluation mode
+    model.eval()
+    # compute metrics over the dataset
+    for data_batch, labels_batch in dataloader:
+        # fetch the next evaluation batch
+        data_batch, labels_batch = Variable(data_batch).to(device), Variable(labels_batch).to(device)
+        # compute model output
+        output_batch = model(data_batch)
+        metrics_batch = metrics(output_batch,labels_batch,weights=weights)
+    return metrics_batch
