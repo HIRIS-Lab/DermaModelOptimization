@@ -40,6 +40,9 @@ class MobileNetDecoder(nn.Module):
         super(MobileNetDecoder, self).__init__()
 
         decode_path = []
+        _, c, _, _ = inverted_residual_setting[-1]
+        decode_path.append(self.__conv_layer__(1280, c, False))
+
         for setting in sliding_window_iter(inverted_residual_setting[::-1], 2):
             in_setting, out_setting = setting
             _, in_c, _, _ = in_setting
