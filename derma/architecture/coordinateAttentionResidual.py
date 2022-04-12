@@ -12,6 +12,9 @@ class CoordAttention(nn.Module):
         return x * self.att_block(x)
 
 class InvertedResidual(nn.Module):
+    r'''
+        Inverted Residual with Coordinate Attention.
+    '''
     def __init__(self, inp, oup, stride, expand_ratio, norm_layer: Optional[Callable[..., nn.Module]] = None):
         super(InvertedResidual, self).__init__()
         assert stride in [1, 2]
