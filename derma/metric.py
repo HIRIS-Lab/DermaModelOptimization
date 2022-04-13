@@ -9,11 +9,12 @@ class Metrics():
         r"""
             Accuracy classification score.
             Args:
+                pred (Tensor): A tensor which contains the prediction of the binary classificator.
+                    This tensor contains the information using one-hot encoding.
+                    
                 targets (Tensor): A tensor which contains the real classification of the samples.
                     This tensor does not use one-hot encoding, classes are enumerated by unsigned
                     integer values.
-                pred (Tensor): A tensor which contains the prediction of the binary classificator.
-                    This tensor contains the information using one-hot encoding.
             Returns:
                 Accuracy value.
         """
