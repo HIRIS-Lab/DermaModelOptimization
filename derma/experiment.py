@@ -53,7 +53,7 @@ def train_experiment(problem_name,train_loader, val_loader,CoordAtt,inverted_res
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
     tb_writer = SummaryWriter(log_dir=os.path.join('log',problem_name))
     model_dir = os.path.join('models',problem_name+'.pt')
-    train_val(model,train_loader,val_loader,optimizer,criterion,tb_writer,n_epoch,model_dir=model_dir)
+    train(model, loader, optimizer, criterion, n_epoch, tb_writer)
     torch.save(model.state_dict(),model_dir)
 
 def load_experiment(model,model_dir):
