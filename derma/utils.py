@@ -83,7 +83,7 @@ def train_val(model,trainloader,validloader,optimizer,criterion,tb_writer,epochs
     another_epoch = 0
 #    scheduler = ExponentialLR(optimizer, gamma=0.9)
 #    scheduler1 = MultiplicativeLR(optimizer, lr_lambda=0.95)
-    scheduler2 = ReduceLROnPlateau(optimizer, 'min')
+#    scheduler2 = ReduceLROnPlateau(optimizer, 'min')
     for _ in epoch_iterator:
         ### TRAIN ###
         model.train()     # Optional when not using Model Specific layer
@@ -131,7 +131,7 @@ def train_val(model,trainloader,validloader,optimizer,criterion,tb_writer,epochs
             min_valid_loss = valid_loss
             torch.save(model.state_dict(), model_dir)
 #            scheduler1.step()
-            scheduler2.step(valid_loss)
+#            scheduler2.step(valid_loss)
         else:
             another_epoch += 1
             if patience < another_epoch:

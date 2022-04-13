@@ -47,7 +47,7 @@ class Derma(Dataset):
         self.x, self.y = zip(*dummy)
         return self
 
-    def split_det(self,split_ratio=0.9):
+    def split_det(self,split_ratio):
         from torch import Tensor, split
         train_size = int(split_ratio[0]*self.__len__())
         val_size = int(split_ratio[1]*self.__len__())
@@ -55,11 +55,9 @@ class Derma(Dataset):
         train_set, val_set, test_set = split(Tensor(list(zip(self.x,self.y))), (train_size,val_size,test_size))
         return train_set, val_set, test_set
     
-    def split_rand(self,split_ratio=[0.8, 0.1, 0.1],manual_seed=None):
+    def split_rand(self,split_ratio,manual_seed=None):
         import random
         from torch.utils.data import random_split
-        if sum(split_ratio) != 1:
-            warning('sum(split_ratio) !=  1')
         if manual_seed:
             seed = manual_seed
         else:
@@ -71,11 +69,9 @@ class Derma(Dataset):
         train_set, val_set, test_set = random_split(self,(train_size,val_size,test_size),generator=generator)
         return train_set, val_set, test_set
     
-    def split_labels(self,split_ratio=[0.8, 0.1, 0.1],manual_seed=None):
+    def split_labels(self,split_ratio,manual_seed=None):
         import random
         from torch.utils.data import random_split
-        if sum(split_ratio) != 1:
-            warning('sum(split_ratio) !=  1')
         if manual_seed:
             seed = manual_seed
         else:
@@ -87,7 +83,7 @@ class Derma(Dataset):
         y_test, y_val, y_test = random_split(self.y,(train_size,val_size,test_size),generator=generator)
         return y_test, y_val, y_test
 
-def get_samples_weight(dataset,y=None,print_results=False):
+def get_samples_weight(dataset,y=None,print_results=True):
     from torch import from_numpy
     from torch.utils.data import WeightedRandomSampler
     if y is None:
