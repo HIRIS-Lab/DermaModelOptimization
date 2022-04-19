@@ -8,6 +8,8 @@
 3. [tensorboard](https://anaconda.org/anaconda/tensorboard)
     * Version: 2.6
 4. [tqdm](https://anaconda.org/anaconda/tqdm)
+5. Others:
+    * Pandas, Matplotlib, Seaborn
 
 
 # Modules

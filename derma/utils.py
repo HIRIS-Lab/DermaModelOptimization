@@ -84,3 +84,10 @@ def train(model, loader, optimizer, criterion, n_epoch, tb_writer, reconstructio
         model.load_state_dict(best_model_wts)
     
     return best_loss
+
+from torchvision.transforms import Normalize
+class UnNormalize(Normalize):
+    def __init__(self, mean, std, *args, **kwargs):
+        new_mean = [-m/s for m,s in zip(mean,std)]
+        new_std = [1/s for s in std]
+        super().__init__(new_mean, new_std, *args, **kwargs)
