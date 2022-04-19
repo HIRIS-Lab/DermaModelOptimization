@@ -27,3 +27,8 @@ def plot_attribution(attribution: np.ndarray, img: np.ndarray, figsize=(8,8)) ->
     ax.imshow(img)
 
     return f
+
+def summary(model: Module, input_size=(1,3,128,128)):
+    from torchinfo import summary
+    return summary(model.cpu(), input_size=input_size)
+    

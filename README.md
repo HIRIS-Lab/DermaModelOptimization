@@ -8,6 +8,8 @@
 3. [tensorboard](https://anaconda.org/anaconda/tensorboard)
     * Version: 2.6
 4. [tqdm](https://anaconda.org/anaconda/tqdm)
+5. [torchinfo](https://anaconda.org/conda-forge/torchinfo)
+    * Version: 1.6.5
 5. Others:
     * Pandas, Matplotlib, Seaborn
 
