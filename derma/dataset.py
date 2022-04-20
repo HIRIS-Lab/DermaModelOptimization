@@ -7,18 +7,12 @@ from torch import LongTensor, from_numpy, Generator
 class Derma(Dataset):
     def __init__(self, root_dir: str, labels=[0, 1], transform=None) -> None:
         super(Derma, self).__init__()
-        '''
-            Definir tu conjunto de datos tal que X e Y estén "relacionadas"
-
-            1. Buscar en el directorio y almacenar las rutas
-        '''
         self.x = []
         self.y = []
         for label in np.unique(labels):
             self.x = self.x + [os.path.join(root_dir,str(label),name) for name in os.listdir(os.path.join(root_dir,str(label)))]
             self.y = self.y + [label]*len(os.listdir(os.path.join(root_dir,str(label))))
         self.y = LongTensor(self.y)
-
         self.transform = transform
 
     def __len__(self):
@@ -57,11 +51,12 @@ class Derma(Dataset):
     
     def split_rand(self,split_ratio,manual_seed=None):
         import random
+        from config import RANDOM_SEED
         from torch.utils.data import random_split
         if manual_seed:
             seed = manual_seed
         else:
-            seed = random.random()
+            seed = RANDOM_SEED
         generator = Generator().manual_seed(seed)
         train_size = int(split_ratio[0]*self.__len__())
         val_size = int(split_ratio[1]*self.__len__())
@@ -71,11 +66,12 @@ class Derma(Dataset):
     
     def split_labels(self,split_ratio,manual_seed=None):
         import random
+        from config import RANDOM_SEED
         from torch.utils.data import random_split
         if manual_seed:
             seed = manual_seed
         else:
-            seed = random.random()
+            seed = RANDOM_SEED
         generator = Generator().manual_seed(seed)
         train_size = int(split_ratio[0]*self.__len__())
         val_size = int(split_ratio[1]*self.__len__())
@@ -86,6 +82,7 @@ class Derma(Dataset):
 def get_samples_weight(dataset,y=None,print_results=True):
     from torch import from_numpy
     from torch.utils.data import WeightedRandomSampler
+    from config import RANDOM_SEED
     if y is None:
         y = [dataset[i][1] for i in range(len(dataset))]
     class_sample_count = np.array([len(np.where(y == t)[0]) for t in np.unique(y)])
@@ -94,5 +91,6 @@ def get_samples_weight(dataset,y=None,print_results=True):
     if print_results:
         print('Samples per class: {}'.format(class_sample_count))
         print('Weight per class: {}'.format(weight))
-    sampler = WeightedRandomSampler(samples_weight, len(samples_weight), replacement=True)
+    generator = Generator().manual_seed(RANDOM_SEED)
+    sampler = WeightedRandomSampler(samples_weight, len(samples_weight), replacement=True,generator=generator)
     return sampler, samples_weight

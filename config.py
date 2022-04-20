@@ -4,5 +4,6 @@ r'''
     DATASET_DIR: Directorio donde se encuentran los datasets.
     RESULT_DIR: Directorio donde se guardan los resultados.
 '''
-DATASET_DIR = r'/home/abian/Data/Dataset/IUMA/Derma/0128-0128_dullrazor/'
-RESULT_DIR = r'/home/abian/Workspace/Thesis/IUMA/data/Derma/'
+DATASET_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\0_DATASETS'
+RESULT_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\DermaModelOptimization\results'
+RANDOM_SEED = 123

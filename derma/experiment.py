@@ -13,7 +13,7 @@ if sparse_dir not in sys.path:
 
 from derma.dataset import Derma
 from derma.architecture import InvertedResidual
-from derma.utils import train, train_val
+from derma.utils import train
 
 import torch
 from torch.utils.data import WeightedRandomSampler, DataLoader
@@ -53,7 +53,7 @@ def train_experiment(problem_name,train_loader, val_loader,CoordAtt,inverted_res
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
     tb_writer = SummaryWriter(log_dir=os.path.join('log',problem_name))
     model_dir = os.path.join('models',problem_name+'.pt')
-    train(model, loader, optimizer, criterion, n_epoch, tb_writer)
+    train(model,[train_loader, val_loader], optimizer, criterion, n_epoch, tb_writer)
     torch.save(model.state_dict(),model_dir)
 
 def load_experiment(model,model_dir):
