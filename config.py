@@ -4,7 +4,7 @@ r'''
     DATASET_DIR: Directorio donde se encuentran los datasets.
     RESULT_DIR: Directorio donde se guardan los resultados.
 '''
-DATASET_DIR = r'/home/abian/Data/Dataset/IUMA/Derma/0128-0128_dullrazor/'
+DATASET_DIR = r'/home/abian/Data/Dataset/Dermatology/HAM10000_splited/'
 RESULT_DIR = r'/home/abian/Workspace/Thesis/IUMA/data/Derma/'
 
 
@@ -51,4 +51,4 @@ MbV2_CA_Reduced = {'inverted_residual_setting': [
      'attention': True,
     }
 
-experiment = {'MbV2': MbV2, 'MBV2_CA': MbV2_CA, 'MBV2_CA_Reduced': MbV2_CA_Reduced}
+experiment = {'MbV2': MbV2, 'MbV2_CA': MbV2_CA, 'MbV2_CA_Reduced': MbV2_CA_Reduced}
