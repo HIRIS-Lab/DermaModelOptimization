@@ -26,6 +26,9 @@ class Derma(Dataset):
             x = self.transform(x)
         return (x, y)
 
+    def getnames(self):
+        return self.x
+
     def get_labels(self):
         return self.y
 
@@ -50,7 +53,6 @@ class Derma(Dataset):
         return train_set, val_set, test_set
     
     def split_rand(self,split_ratio,manual_seed=None):
-        import random
         from config import RANDOM_SEED
         from torch.utils.data import random_split
         if manual_seed:
@@ -65,7 +67,6 @@ class Derma(Dataset):
         return train_set, val_set, test_set
     
     def split_labels(self,split_ratio,manual_seed=None):
-        import random
         from config import RANDOM_SEED
         from torch.utils.data import random_split
         if manual_seed:
@@ -76,8 +77,8 @@ class Derma(Dataset):
         train_size = int(split_ratio[0]*self.__len__())
         val_size = int(split_ratio[1]*self.__len__())
         test_size = self.__len__() - train_size - val_size
-        y_test, y_val, y_test = random_split(self.y,(train_size,val_size,test_size),generator=generator)
-        return y_test, y_val, y_test
+        y_train, y_val, y_test = random_split(self.y,(train_size,val_size,test_size),generator=generator)
+        return y_train, y_val, y_test
 
 def get_samples_weight(dataset,y=None,print_results=True):
     from torch import from_numpy
