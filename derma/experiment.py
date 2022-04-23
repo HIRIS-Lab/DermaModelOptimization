@@ -130,7 +130,7 @@ def load_experiments_results(test,DB_used):
     elif test == 4:
         Test = 'MbV2_Reduced'
         CoordAtt = False
-        inverted_residual_setting = inverted_residual_setting_v0
+        inverted_residual_setting = inverted_residual_setting_vT3
     if DB_used == 'HAM10000':
         dataset_dir = os.path.join(DATASET_DIR,'HAM10000_splited')
         transform = transforms.Compose([
