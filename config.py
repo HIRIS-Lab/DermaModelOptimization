@@ -5,10 +5,10 @@ r'''
 
     También la configuración de los experimentos!
 '''
-#DATASET_DIR = r'/home/abian/Data/Dataset/Dermatology/HAM10000_splited/'
-#RESULT_DIR = r'/home/abian/Workspace/Thesis/IUMA/data/Derma/'
-DATASET_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\0_DATASETS'
-RESULT_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\DermaModelOptimization\results'
+#DATASET_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\0_DATASETS'
+#RESULT_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\DermaModelOptimization\results'
+DATASET_DIR = 'data'
+RESULT_DIR = 'results'
 RANDOM_SEED = 123
 
 # Experiments configuration
