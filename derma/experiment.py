@@ -88,7 +88,7 @@ def test_experiment(model,dataloader,weights=None):
         # compute model output
         output_batch = model(data_batch)
         metrics_batch = metrics(output_batch,labels_batch,weights=weights)
-    return metrics_batch
+    return metrics_batch, labels_batch, output_batch
 
 def load_experiments_results(test,DB_used):
     from config import DATASET_DIR, RESULT_DIR
@@ -114,7 +114,7 @@ def load_experiments_results(test,DB_used):
             [4, 160, 1, 2],
             [4, 320, 1, 1],
         ]
-    batch_size = 40
+    batch_size = 224
     if test == 1:
         Test = 'MbV2'
         CoordAtt = False
@@ -131,13 +131,20 @@ def load_experiments_results(test,DB_used):
         Test = 'MbV2_Reduced'
         CoordAtt = False
         inverted_residual_setting = inverted_residual_setting_vT3
-    if DB_used == 'HAM10000':
+    if DB_used == 'HAM10000' or DB_used == 'HAM_test19':
         dataset_dir = os.path.join(DATASET_DIR,'HAM10000_splited')
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize((256, 256))
         ])
-    elif DB_used == 'ISIC2019':
+    elif DB_used == 'HAM_norm':
+        dataset_dir = os.path.join(DATASET_DIR,'HAM10000_splited')
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((256, 256)),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    elif DB_used == 'ISIC2019' or DB_used == 'ISIC19_testHAM':
         dataset_dir = os.path.join(DATASET_DIR,'ISIC2019_splited')
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -149,21 +156,34 @@ def load_experiments_results(test,DB_used):
             transforms.Resize((256, 256))
         ])
         batch_size = 6
-    model_dir = os.path.join(RESULT_DIR,'weights',Test,DB_used,'model.pth')
+    if DB_used == 'HAM_test19':
+        model_dir = os.path.join(RESULT_DIR,'weights',Test,'HAM10000','model.pth')
+        test_set = Derma(os.path.join(DATASET_DIR,'ISIC2019_balanced_000_256'),labels=[0,1],transform=transform)
+        print(model_dir)
+        print(os.path.join(DATASET_DIR,'ISIC2019_balanced_000_256'))
+    elif DB_used == 'ISIC19_testHAM':
+        model_dir = os.path.join(RESULT_DIR,'weights',Test,'ISIC2019','model.pth')
+        test_set = Derma(os.path.join(DATASET_DIR,'HAM10000_balanced_000'),labels=[0,1],transform=transform)
+        print(model_dir)
+        print(os.path.join(DATASET_DIR,'HAM10000_balanced_000'))
+    else:
+        model_dir = os.path.join(RESULT_DIR,'weights',Test,DB_used,'model.pth')
+        test_set = Derma(os.path.join(dataset_dir,'test'),labels=[0,1],transform=transform)
+
+#    test_sampler, test_weights = get_samples_weight(test_set,print_results=False)
+#    test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0, sampler=test_sampler, shuffle=False)
+    test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0, shuffle=False)
     if CoordAtt:
         model = MobileNetV2(num_classes=2, inverted_residual_setting=inverted_residual_setting, block=InvertedResidual)
     else:
         model = MobileNetV2(num_classes=2, inverted_residual_setting=inverted_residual_setting) # standard MobileNetV2
-    test_set = Derma(os.path.join(dataset_dir,'test'),labels=[0,1],transform=transform)
-    test_sampler, test_weights = get_samples_weight(test_set,print_results=False)
-    test_loader = DataLoader(test_set, batch_size=batch_size, num_workers=0, sampler=test_sampler, shuffle=False)
     if torch.cuda.is_available():
         device = torch.device('cuda')
         model.load_state_dict(torch.load(model_dir))
         model.to(device)
     else:
         model.load_state_dict(torch.load(model_dir),map_location=torch.device('cpu'))
-    test_result = test_experiment(model,test_loader)
+    test_result, _, _ = test_experiment(model,test_loader)
     experiment_name = DB_used + '_' + Test
     return test_result, experiment_name
 

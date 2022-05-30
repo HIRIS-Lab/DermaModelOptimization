@@ -35,6 +35,7 @@ class Metrics():
                 Return a tuple with contains the following metrics: sensitivity, specificity
                 and precission.
         """
+#        tn, fp, fn, tp = confusion_matrix(targets.cpu(), argmax(pred, dim=1).cpu(),labels=[0,1],sample_weight=weights)
         tn, fp, fn, tp = confusion_matrix(targets.cpu(), argmax(pred, dim=1).cpu(),labels=[0,1],sample_weight=weights).ravel()
         specificity = tn / (tn+fp)
         sensitivity = tp / (tp+fn)
