@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 def GradCamAttribute(model: Module, layer: Module, inputs: Tensor, target: Tensor):
     model.eval()
     guided_gc = GuidedGradCam(model, layer)
-    guided_gc.relu_attributions = False
+    guided_gc.relu_attributions = True
 
     attribution = guided_gc.attribute(inputs, target)
 
