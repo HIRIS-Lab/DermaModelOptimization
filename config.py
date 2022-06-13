@@ -7,8 +7,8 @@ r'''
 '''
 #DATASET_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\0_DATASETS'
 #RESULT_DIR = r'C:\Users\mcastro\Documents\MCastro\2_Codigo\DermaModelOptimization\results'
-DATASET_DIR = 'data'
-RESULT_DIR = 'results'
+DATASET_DIR = 'data' # in notebooks
+RESULT_DIR = '..\\results' # it's another folder
 RANDOM_SEED = 123
 
 # Experiments configuration
